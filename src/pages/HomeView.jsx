@@ -17,6 +17,7 @@ import {
 import { THEME } from '../constants/theme';
 import { BackgroundPattern } from '../components/BackgroundPattern';
 import { Reveal } from '../components/Reveal';
+import { VisitorRegistrationModal } from '../components/VisitorRegistrationModal';
 import fotoHero from '../assets/fotohero.jpg';
 import pembicaraImage from '../assets/pembicara.png';
 import beritaHijabImage from '../assets/beritahijab.png';
@@ -24,6 +25,7 @@ import beritaHijabImage from '../assets/beritahijab.png';
 export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
   const videoSectionRef = useRef(null);
   const [isVideoActive, setIsVideoActive] = useState(false);
+  const [isVisitorModalOpen, setIsVisitorModalOpen] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -138,9 +140,12 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Daftar Exhibitor Sekarang <ArrowRight className="w-4 h-4" />
+                    Sponsorship & Collaboration <ArrowRight className="w-4 h-4" />
                   </a>
-                  <button className="w-full sm:w-auto px-6 py-3 rounded-sm font-semibold text-sm sm:text-base text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37]/10 transition-all flex items-center justify-center gap-2">
+                  <button
+                    className="w-full sm:w-auto px-6 py-3 rounded-sm font-semibold text-sm sm:text-base text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37]/10 transition-all flex items-center justify-center gap-2"
+                    onClick={() => setIsVisitorModalOpen(true)}
+                  >
                     Jadi Visitor <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -435,6 +440,11 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
                       ? 'bg-black text-white hover:bg-gray-900 hover:shadow-xl'
                       : 'bg-white/5 border border-white/10 text-white hover:bg-[#D4AF37] hover:text-black hover:border-transparent'
                   }`}
+                  onClick={() => {
+                    if (cta.role === 'Untuk Pengunjung') {
+                      setIsVisitorModalOpen(true);
+                    }
+                  }}
                 >
                   {cta.btn}
                 </button>
@@ -691,6 +701,7 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
           </Reveal>
         </div>
       </section>
+      <VisitorRegistrationModal open={isVisitorModalOpen} onClose={() => setIsVisitorModalOpen(false)} />
     </div>
   );
 };
