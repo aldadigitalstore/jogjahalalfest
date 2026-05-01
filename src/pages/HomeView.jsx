@@ -86,7 +86,7 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
       {/* HERO SECTION */}
       <section id="beranda" className="relative min-h-screen flex items-center pt-24 pb-20 lg:pt-32 overflow-hidden">
         <div
-          className="absolute right-0 top-[15%] w-[42vw] h-[42vw] sm:w-[50vw] sm:h-[50vw] opacity-40 pointer-events-none mix-blend-screen animate-float"
+          className="absolute right-0 top-[10%] w-[42vw] h-[42vw] sm:w-[50vw] sm:h-[50vw] opacity-40 pointer-events-none mix-blend-screen animate-float"
           style={{ transform: `translateY(calc(-50% + ${scrollY * 0.1}px))` }}
         >
           <div className="relative w-full h-full rounded-full overflow-hidden border border-[#D4AF37]/30 shadow-[0_0_60px_rgba(212,175,55,0.25)]">
