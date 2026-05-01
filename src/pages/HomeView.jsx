@@ -18,7 +18,7 @@ import { THEME } from '../constants/theme';
 import { BackgroundPattern } from '../components/BackgroundPattern';
 import { Reveal } from '../components/Reveal';
 import { VisitorRegistrationModal } from '../components/VisitorRegistrationModal';
-import fotoHero from '../assets/fotohero.jpg';
+import heroBumperVideo from '../assets/Bumper-Logo.mp4';
 import pembicaraImage from '../assets/pembicara.png';
 import beritaHijabImage from '../assets/beritahijab.png';
 
@@ -86,15 +86,21 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
       {/* HERO SECTION */}
       <section id="beranda" className="relative min-h-screen flex items-center pt-24 pb-20 lg:pt-32 overflow-hidden">
         <div
-          className="absolute right-0 top-1/4 w-[50vw] h-[50vw] opacity-20 pointer-events-none mix-blend-screen animate-float"
-          style={{ transform: `translateY(${scrollY * 0.1}px)` }}
+          className="absolute right-0 top-[15%] w-[42vw] h-[42vw] sm:w-[50vw] sm:h-[50vw] opacity-40 pointer-events-none mix-blend-screen animate-float"
+          style={{ transform: `translateY(calc(-50% + ${scrollY * 0.1}px))` }}
         >
-          <img
-            src={fotoHero}
-            alt="Jogja Halal Fest Hero"
-            className="w-full h-full object-cover rounded-full"
-            loading="lazy"
-          />
+          <div className="relative w-full h-full rounded-full overflow-hidden border border-[#D4AF37]/30 shadow-[0_0_60px_rgba(212,175,55,0.25)]">
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/10 via-transparent to-white/10"></div>
+            <video
+              className="w-full h-full object-cover rounded-full"
+              src={heroBumperVideo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              aria-hidden="true"
+            />
+          </div>
         </div>
 
         <div className="container mx-auto px-6 max-w-7xl relative z-10">
