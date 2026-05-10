@@ -29,6 +29,7 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
   const [isVideoActive, setIsVideoActive] = useState(false);
   const [isVisitorModalOpen, setIsVisitorModalOpen] = useState(false);
   const [homeNews, setHomeNews] = useState([]);
+  const [partnerLogos, setPartnerLogos] = useState([]);
   const metaTitle = 'Jogja Halal Fest 2026 | Halal Lifestyle & Business Expo';
   const metaDescription =
     'Jogja Halal Fest 2026 di Jogja Expo Center. Event halal lifestyle dan business expo yang menghubungkan UMKM, brand, investor, dan peluang global.';
@@ -60,6 +61,19 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
         const normalized = Array.isArray(list) ? list : [];
         const sorted = [...normalized].sort((a, b) => parseNewsDate(b?.date) - parseNewsDate(a?.date));
         setHomeNews(sorted);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get('http://127.0.0.1:8000/api/partners')
+      .then((res) => {
+        const list = Array.isArray(res.data)
+          ? res.data
+          : res.data?.value || res.data?.data || [];
+        const normalized = Array.isArray(list) ? list : [];
+        setPartnerLogos(normalized);
       })
       .catch((err) => console.error(err));
   }, []);
@@ -143,45 +157,80 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
     sm: 'h-14 sm:h-16',
   };
 
-  const renderLogoCard = (item, size = 'md', tone = 'full', index = 0) => (
-    <div
-      key={item.name}
-      style={{ '--logo-delay': `${index * 0.05}s` }}
-      className={`logo-card flex items-center justify-center rounded-2xl border border-[#E8E0D0] bg-white/90 px-6 ${
-        logoSizeClass[size]
-      } ${tone === 'muted' ? 'logo-card--muted' : ''} transition-all duration-300 shadow-[0_12px_30px_rgba(40,35,25,0.08)]`}
-    >
-      {item.src ? (
-        <img src={item.src} alt={item.name} className="max-h-full max-w-full object-contain" loading="lazy" />
-      ) : (
-        <span className="text-[#3D3429] text-sm font-bold tracking-wide uppercase">{item.name}</span>
-      )}
-    </div>
-  );
+  const renderLogoCard = (item, size = 'md', tone = 'full', index = 0) => {
+    const logoSrc = item?.logo_url || item?.logo || item?.src;
+    const logoName = item?.name || 'Logo';
 
-  const hostedBy = [{ name: 'HOSTED BY LOGO' }];
-  const coHost = [{ name: 'CO-HOST LOGO 1' }, { name: 'CO-HOST LOGO 2' }];
-  const partners = [{ name: 'PARTNER LOGO 1' }, { name: 'PARTNER LOGO 2' }, { name: 'PARTNER LOGO 3' }];
-  const supportInstitutions = {
-    lembagaNegara: [{ name: 'KNEKS' }, { name: 'BANK INDONESIA' }, { name: 'OJK' }],
-    pemerintah: [{ name: 'PEMERINTAH DAERAH' }, { name: 'KEMENTERIAN INVESTASI' }, { name: 'LEMBAGA LAIN' }],
-    universitas: [{ name: 'UNIVERSITAS 1' }, { name: 'UNIVERSITAS 2' }, { name: 'UNIVERSITAS 3' }, { name: 'UNIVERSITAS 4' }],
+    return (
+      <div
+        key={item?.id ?? item?.name ?? index}
+        style={{ '--logo-delay': `${index * 0.05}s` }}
+        className={`logo-card flex items-center justify-center rounded-2xl border border-[#E8E0D0] bg-white/90 px-6 ${
+          logoSizeClass[size]
+        } ${tone === 'muted' ? 'logo-card--muted' : ''} transition-all duration-300 shadow-[0_12px_30px_rgba(40,35,25,0.08)]`}
+      >
+        {logoSrc ? (
+          <img src={logoSrc} alt={logoName} className="max-h-full max-w-full object-contain" loading="lazy" />
+        ) : (
+          <span className="text-[#3D3429] text-sm font-bold tracking-wide uppercase">{logoName}</span>
+        )}
+      </div>
+    );
   };
-  const supportCommunity = {
-    asosiasi: [{ name: 'ASOSIASI 1' }, { name: 'ASOSIASI 2' }, { name: 'ASOSIASI 3' }],
-    organisasi: [{ name: 'ORMAS 1' }, { name: 'ORMAS 2' }, { name: 'ORMAS 3' }, { name: 'ORMAS 4' }],
-    media: [{ name: 'MEDIA 1' }, { name: 'MEDIA 2' }, { name: 'MEDIA 3' }, { name: 'MEDIA 4' }, { name: 'MEDIA 5' }],
-  };
-  const sponsors = [
-    { name: 'SPONSOR 1' },
-    { name: 'SPONSOR 2' },
-    { name: 'SPONSOR 3' },
-    { name: 'SPONSOR 4' },
-    { name: 'SPONSOR 5' },
-    { name: 'SPONSOR 6' },
-    { name: 'SPONSOR 7' },
-    { name: 'SPONSOR 8' },
-  ];
+
+  const partnerGroups = useMemo(() => {
+    const groups = {
+      hostedBy: [],
+      coHost: [],
+      partner: [],
+      supportLembagaNegara: [],
+      supportPemerintah: [],
+      supportUniversitas: [],
+      supportAsosiasi: [],
+      supportOrganisasiMasyarakat: [],
+      supportMedia: [],
+      sponsor: [],
+    };
+
+    partnerLogos.forEach((item) => {
+      switch (item?.category) {
+        case 'Hosted By':
+          groups.hostedBy.push(item);
+          break;
+        case 'Co-Host':
+          groups.coHost.push(item);
+          break;
+        case 'Partner':
+          groups.partner.push(item);
+          break;
+        case 'Support Lembaga Negara':
+          groups.supportLembagaNegara.push(item);
+          break;
+        case 'Support Pemerintah':
+          groups.supportPemerintah.push(item);
+          break;
+        case 'Support Universitas':
+          groups.supportUniversitas.push(item);
+          break;
+        case 'Support Asosiasi':
+          groups.supportAsosiasi.push(item);
+          break;
+        case 'Support Organisasi Masyarakat':
+          groups.supportOrganisasiMasyarakat.push(item);
+          break;
+        case 'Support Media':
+          groups.supportMedia.push(item);
+          break;
+        case 'Sponsor':
+          groups.sponsor.push(item);
+          break;
+        default:
+          break;
+      }
+    });
+
+    return groups;
+  }, [partnerLogos]);
 
   return (
     <>
@@ -793,7 +842,9 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
               <div className="text-center">
                 <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64]">Hosted By</p>
                 <div className="mt-6 flex flex-wrap justify-center gap-6">
-                  {hostedBy.map((item, index) => renderLogoCard(item, 'xl', 'full', index))}
+                  {partnerGroups.hostedBy.length > 0
+                    ? partnerGroups.hostedBy.map((item, index) => renderLogoCard(item, 'xl', 'full', index))
+                    : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                 </div>
               </div>
             </Reveal>
@@ -803,13 +854,17 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
                 <div>
                   <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64]">Co-Host</p>
                   <div className="mt-6 grid grid-cols-2 gap-6">
-                    {coHost.map((item, index) => renderLogoCard(item, 'lg', 'full', index))}
+                    {partnerGroups.coHost.length > 0
+                      ? partnerGroups.coHost.map((item, index) => renderLogoCard(item, 'lg', 'full', index))
+                      : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                   </div>
                 </div>
                 <div>
                   <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64]">Partner</p>
                   <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
-                    {partners.map((item, index) => renderLogoCard(item, 'lg', 'full', index))}
+                    {partnerGroups.partner.length > 0
+                      ? partnerGroups.partner.map((item, index) => renderLogoCard(item, 'lg', 'full', index))
+                      : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                   </div>
                 </div>
               </div>
@@ -826,19 +881,25 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
                     <div>
                       <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Lembaga Negara</p>
                       <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {supportInstitutions.lembagaNegara.map((item, index) => renderLogoCard(item, 'md', 'muted', index))}
+                        {partnerGroups.supportLembagaNegara.length > 0
+                          ? partnerGroups.supportLembagaNegara.map((item, index) => renderLogoCard(item, 'md', 'muted', index))
+                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                       </div>
                     </div>
                     <div>
                       <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Pemerintah</p>
                       <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {supportInstitutions.pemerintah.map((item, index) => renderLogoCard(item, 'md', 'muted', index))}
+                        {partnerGroups.supportPemerintah.length > 0
+                          ? partnerGroups.supportPemerintah.map((item, index) => renderLogoCard(item, 'md', 'muted', index))
+                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                       </div>
                     </div>
                     <div>
                       <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Universitas</p>
                       <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {supportInstitutions.universitas.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))}
+                        {partnerGroups.supportUniversitas.length > 0
+                          ? partnerGroups.supportUniversitas.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))
+                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                       </div>
                     </div>
                   </div>
@@ -846,19 +907,25 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
                     <div>
                       <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Asosiasi</p>
                       <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {supportCommunity.asosiasi.map((item, index) => renderLogoCard(item, 'md', 'muted', index))}
+                        {partnerGroups.supportAsosiasi.length > 0
+                          ? partnerGroups.supportAsosiasi.map((item, index) => renderLogoCard(item, 'md', 'muted', index))
+                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                       </div>
                     </div>
                     <div>
                       <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Organisasi Masyarakat</p>
                       <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {supportCommunity.organisasi.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))}
+                        {partnerGroups.supportOrganisasiMasyarakat.length > 0
+                          ? partnerGroups.supportOrganisasiMasyarakat.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))
+                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                       </div>
                     </div>
                     <div>
                       <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Media</p>
                       <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {supportCommunity.media.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))}
+                        {partnerGroups.supportMedia.length > 0
+                          ? partnerGroups.supportMedia.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))
+                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                       </div>
                     </div>
                   </div>
@@ -870,7 +937,9 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
               <div>
                 <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64] text-center">Sponsor</p>
                 <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {sponsors.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))}
+                  {partnerGroups.sponsor.length > 0
+                    ? partnerGroups.sponsor.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))
+                    : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
                 </div>
               </div>
             </Reveal>
