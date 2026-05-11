@@ -150,49 +150,29 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
     return Number.isNaN(parsed) ? 0 : parsed;
   };
 
-  const logoSizeClass = {
-    xl: 'h-24 sm:h-28',
-    lg: 'h-20 sm:h-24',
-    md: 'h-16 sm:h-18',
-    sm: 'h-14 sm:h-16',
+  const logoShapePillClass = {
+    square: 'w-8 h-8',
+    landscape: 'w-10 h-7',
+    portrait: 'w-7 h-10',
   };
 
-  const renderLogoCard = (item, size = 'md', tone = 'full', index = 0) => {
-    const logoSrc = item?.logo_url || item?.logo || item?.src;
-    const logoName = item?.name || 'Logo';
-
-    return (
-      <div
-        key={item?.id ?? item?.name ?? index}
-        style={{ '--logo-delay': `${index * 0.05}s` }}
-        className={`logo-card flex items-center justify-center rounded-2xl border border-[#E8E0D0] bg-white/90 px-6 ${
-          logoSizeClass[size]
-        } ${tone === 'muted' ? 'logo-card--muted' : ''} transition-all duration-300 shadow-[0_12px_30px_rgba(40,35,25,0.08)]`}
-      >
-        {logoSrc ? (
-          <img src={logoSrc} alt={logoName} className="max-h-full max-w-full object-contain" loading="lazy" />
-        ) : (
-          <span className="text-[#3D3429] text-sm font-bold tracking-wide uppercase">{logoName}</span>
-        )}
-      </div>
-    );
-  };
-
+  const partnerLogoList = useMemo(
+    () =>
+      partnerLogos.filter((item) => {
+        const logoSrc = item?.logo_url || item?.logo || item?.src;
+        return Boolean(logoSrc);
+      }),
+    [partnerLogos]
+  );
   const partnerGroups = useMemo(() => {
     const groups = {
       hostedBy: [],
       coHost: [],
       partner: [],
-      supportLembagaNegara: [],
-      supportPemerintah: [],
-      supportUniversitas: [],
-      supportAsosiasi: [],
-      supportOrganisasiMasyarakat: [],
-      supportMedia: [],
-      sponsor: [],
+      supportBy: [],
     };
 
-    partnerLogos.forEach((item) => {
+    partnerLogoList.forEach((item) => {
       switch (item?.category) {
         case 'Hosted By':
           groups.hostedBy.push(item);
@@ -204,25 +184,13 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
           groups.partner.push(item);
           break;
         case 'Support Lembaga Negara':
-          groups.supportLembagaNegara.push(item);
-          break;
         case 'Support Pemerintah':
-          groups.supportPemerintah.push(item);
-          break;
         case 'Support Universitas':
-          groups.supportUniversitas.push(item);
-          break;
         case 'Support Asosiasi':
-          groups.supportAsosiasi.push(item);
-          break;
         case 'Support Organisasi Masyarakat':
-          groups.supportOrganisasiMasyarakat.push(item);
-          break;
         case 'Support Media':
-          groups.supportMedia.push(item);
-          break;
-        case 'Sponsor':
-          groups.sponsor.push(item);
+        case 'Support By':
+          groups.supportBy.push(item);
           break;
         default:
           break;
@@ -230,7 +198,72 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
     });
 
     return groups;
-  }, [partnerLogos]);
+  }, [partnerLogoList]);
+
+  const buildLogoTrack = (list) => {
+    const safeList = Array.isArray(list) ? list : [];
+    return [...safeList, ...safeList];
+  };
+  const shouldAnimateLogoTrack = (list) => (Array.isArray(list) ? list.length > 3 : false);
+  const getLogoTrack = (list) => (shouldAnimateLogoTrack(list) ? buildLogoTrack(list) : list || []);
+  const getScrollerClass = (list) => (shouldAnimateLogoTrack(list) ? 'logo-scroller' : 'logo-scroller logo-scroller--static');
+  const getScrollerInnerClass = (list, reverse = false) => {
+    if (!shouldAnimateLogoTrack(list)) {
+      return 'logo-scroller-inner logo-scroller-inner--static';
+    }
+
+    return reverse ? 'logo-scroller-inner reverse' : 'logo-scroller-inner';
+  };
+
+  const resolveLogoShape = (item) => {
+    const width = Number(item?.logo_width);
+    const height = Number(item?.logo_height);
+
+    if (width > 0 && height > 0) {
+      const ratio = width / height;
+
+      if (ratio > 1.2) {
+        return 'landscape';
+      }
+
+      if (ratio < 0.85) {
+        return 'portrait';
+      }
+
+      return 'square';
+    }
+
+    return item?.logo_shape || 'landscape';
+  };
+
+  const renderLogoPill = (item, index) => {
+    const logoSrc = item?.logo_url || item?.logo || item?.src;
+    const logoName = item?.name || 'Logo';
+    const shapeClass = logoShapePillClass[resolveLogoShape(item)] || logoShapePillClass.landscape;
+
+    return (
+      <div
+        key={`${item?.id ?? item?.name ?? 'logo'}-${index}`}
+        className="group flex items-center gap-4 px-6 py-3 bg-white border border-[#E8E0D0] rounded-2xl shrink-0 hover:border-[#D4AF37] hover:shadow-lg transition-all duration-300 cursor-pointer"
+      >
+        {logoSrc ? (
+          <img
+            src={logoSrc}
+            alt={logoName}
+            loading="lazy"
+            className={`${shapeClass} object-contain rounded-md filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300`}
+          />
+        ) : (
+          <span
+            className={`${shapeClass} rounded-md bg-[#F2EBDD] text-[#3D3429] text-xs font-semibold flex items-center justify-center`}
+          >
+            N/A
+          </span>
+        )}
+        <span className="font-bold text-[#6B6255] group-hover:text-[#1C1A18] text-base">{logoName}</span>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -396,7 +429,7 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
                     },
                     {
                       title: 'Peluang Global Terbuka',
-                      desc: 'Membuka jalur ekspor dan pencocokan bisnis internasional (Business Matching).',
+                      desc: 'Membuka jalur ekspor dan pencocokan bisnis internasional (Halal Business Forum).',
                     },
                   ].map((item, i) => (
                     <div key={i} className="flex gap-5 group cursor-default">
@@ -437,7 +470,7 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
             {[
               { title: 'Peluang Ekspor', icon: <Globe />, desc: 'Akses langsung ke pembeli internasional dan konsultasi ekspor.' },
               {
-                title: 'Business Matching',
+                title: 'Halal Business Forum',
                 icon: <Handshake />,
                 desc: 'Pertemuan B2B terjadwal dengan pemangku kepentingan yang ditargetkan.',
               },
@@ -519,7 +552,7 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
                 icon: <Store />,
               },
               {
-                title: 'Business Matching',
+                title: 'Halal Business Forum',
                 img: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
                 icon: <Handshake />,
               },
@@ -639,7 +672,7 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                quote: 'Sesi business matching di JHF membuka pintu ke pembeli internasional yang tidak pernah kami bayangkan sebelumnya.',
+                quote: 'Sesi Halal Business Forum di JHF membuka pintu ke pembeli internasional yang tidak pernah kami bayangkan sebelumnya.',
                 name: 'Ahmad Fauzi',
                 role: 'CEO, Halal Foods Co.',
               },
@@ -793,34 +826,67 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
       </section>
 
       {/* MITRA & KOLABORATOR */}
-      <section id="sponsor" className="py-28 relative overflow-hidden" style={{ backgroundColor: '#F7F2E8' }}>
+      <section id="sponsor" className="py-20 relative z-10 bg-[#F6F7FB] border-y border-[#E2E5EC] overflow-hidden">
         <style>{`
-          .logo-card {
-            animation: logo-pop 0.6s ease both;
-            animation-delay: var(--logo-delay);
-            transform: translateY(8px);
-            opacity: 0;
+          .logo-scroller {
+            position: relative;
+            overflow: hidden;
           }
-          .logo-card--muted {
-            filter: grayscale(0.5);
-            opacity: 0.85;
+          .logo-scroller::before,
+          .logo-scroller::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            z-index: 2;
           }
-          .logo-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 18px 40px rgba(40, 35, 25, 0.12);
+          .logo-scroller::before {
+            left: 0;
+            background: linear-gradient(to right, rgba(246, 247, 251, 1), rgba(246, 247, 251, 0));
           }
-          .logo-card--muted:hover {
-            filter: grayscale(0);
-            opacity: 1;
+          .logo-scroller::after {
+            right: 0;
+            background: linear-gradient(to left, rgba(246, 247, 251, 1), rgba(246, 247, 251, 0));
           }
-          @keyframes logo-pop {
-            from {
-              opacity: 0;
-              transform: translateY(12px) scale(0.98);
+          .logo-scroller--static::before,
+          .logo-scroller--static::after {
+            display: none;
+          }
+          .logo-marquee-full {
+            width: 100vw;
+            margin-left: 50%;
+            transform: translateX(-50%);
+            padding: 0 16px;
+          }
+          .logo-scroller-inner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: max-content;
+            animation: scroll-left var(--logo-duration, 48s) linear infinite;
+            animation-delay: calc(var(--logo-duration, 48s) / -2);
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+          }
+          .logo-scroller-inner.reverse {
+            animation-direction: reverse;
+          }
+          .logo-scroller:hover .logo-scroller-inner,
+          .logo-scroller:active .logo-scroller-inner {
+            animation-play-state: paused;
+          }
+          .logo-scroller-inner--static {
+            width: 100%;
+            animation: none;
+            justify-content: center;
+          }
+          @keyframes scroll-left {
+            0% {
+              transform: translate3d(0, 0, 0);
             }
-            to {
-              opacity: 1;
-              transform: translateY(0) scale(1);
+            100% {
+              transform: translate3d(-50%, 0, 0);
             }
           }
         `}</style>
@@ -828,123 +894,63 @@ export const HomeView = ({ scrollY, handleNavClick, onSelectNews }) => {
         <div className="absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-[#0A0A0F]/10 blur-[90px]"></div>
         <div className="container mx-auto px-6 max-w-7xl relative z-10">
           <Reveal>
-            <div className="text-center mb-20">
-              <p className="text-xs font-semibold tracking-[0.35em] uppercase text-[#8A7B64] mb-4">Mendukung Ekosistem</p>
-              <h3 className="text-4xl md:text-5xl font-extrabold text-[#1C1A18]">Mitra & Kolaborator Kami</h3>
-              <p className="text-[#6B6255] mt-4 text-base md:text-lg">
+            <div className="max-w-6xl mx-auto px-2 mb-12 text-center">
+              <h3 className="text-4xl md:text-5xl font-extrabold text-[#1C1A18] mb-4 tracking-tight">
+                Mitra & Kolaborator Kami
+              </h3>
+              <div className="w-12 h-1 bg-[#D4AF37] mx-auto mb-6"></div>
+              <p className="text-[#6B6255] max-w-2xl mx-auto text-lg">
                 Kolaborasi lintas sektor untuk memperkuat dampak dan keberlanjutan Jogja Halal Fest.
               </p>
             </div>
           </Reveal>
-
-          <div className="space-y-16">
-            <Reveal delay={100}>
-              <div className="text-center">
-                <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64]">Hosted By</p>
-                <div className="mt-6 flex flex-wrap justify-center gap-6">
-                  {partnerGroups.hostedBy.length > 0
-                    ? partnerGroups.hostedBy.map((item, index) => renderLogoCard(item, 'xl', 'full', index))
-                    : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal delay={150}>
-              <div className="grid lg:grid-cols-2 gap-12">
-                <div>
-                  <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64]">Co-Host</p>
-                  <div className="mt-6 grid grid-cols-2 gap-6">
-                    {partnerGroups.coHost.length > 0
-                      ? partnerGroups.coHost.map((item, index) => renderLogoCard(item, 'lg', 'full', index))
-                      : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64]">Partner</p>
-                  <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
-                    {partnerGroups.partner.length > 0
-                      ? partnerGroups.partner.map((item, index) => renderLogoCard(item, 'lg', 'full', index))
-                      : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal delay={200}>
-              <div>
-                <div className="flex items-center justify-between gap-6 flex-wrap">
-                  <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64]">Support</p>
-                  <span className="text-sm text-[#6B6255]">Institusi & Komunitas</span>
-                </div>
-                <div className="mt-8 grid lg:grid-cols-2 gap-12">
-                  <div className="space-y-8">
-                    <div>
-                      <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Lembaga Negara</p>
-                      <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {partnerGroups.supportLembagaNegara.length > 0
-                          ? partnerGroups.supportLembagaNegara.map((item, index) => renderLogoCard(item, 'md', 'muted', index))
-                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Pemerintah</p>
-                      <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {partnerGroups.supportPemerintah.length > 0
-                          ? partnerGroups.supportPemerintah.map((item, index) => renderLogoCard(item, 'md', 'muted', index))
-                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Universitas</p>
-                      <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {partnerGroups.supportUniversitas.length > 0
-                          ? partnerGroups.supportUniversitas.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))
-                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-8">
-                    <div>
-                      <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Asosiasi</p>
-                      <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {partnerGroups.supportAsosiasi.length > 0
-                          ? partnerGroups.supportAsosiasi.map((item, index) => renderLogoCard(item, 'md', 'muted', index))
-                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Organisasi Masyarakat</p>
-                      <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {partnerGroups.supportOrganisasiMasyarakat.length > 0
-                          ? partnerGroups.supportOrganisasiMasyarakat.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))
-                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold tracking-[0.28em] uppercase text-[#8A7B64]">Support Media</p>
-                      <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {partnerGroups.supportMedia.length > 0
-                          ? partnerGroups.supportMedia.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))
-                          : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal delay={250}>
-              <div>
-                <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64] text-center">Sponsor</p>
-                <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {partnerGroups.sponsor.length > 0
-                    ? partnerGroups.sponsor.map((item, index) => renderLogoCard(item, 'sm', 'muted', index))
-                    : <p className="text-sm text-[#6B6255] mt-2">Belum ada data.</p>}
-                </div>
-              </div>
-            </Reveal>
-          </div>
         </div>
+        {partnerLogoList.length === 0 ? (
+          <div className="text-center text-sm text-[#6B6255]">Belum ada data.</div>
+        ) : (
+          <div className="logo-marquee-full space-y-10">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64] mb-3 text-center">
+                Hosted By
+              </p>
+              <div className={getScrollerClass(partnerGroups.hostedBy)}>
+                <div className={getScrollerInnerClass(partnerGroups.hostedBy)}>
+                  {getLogoTrack(partnerGroups.hostedBy).map((item, index) => renderLogoPill(item, index))}
+                </div>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64] mb-3 text-center">
+                Co-Host
+              </p>
+              <div className={getScrollerClass(partnerGroups.coHost)}>
+                <div className={getScrollerInnerClass(partnerGroups.coHost, true)}>
+                  {getLogoTrack(partnerGroups.coHost).map((item, index) => renderLogoPill(item, index))}
+                </div>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64] mb-3 text-center">
+                Partner
+              </p>
+              <div className={getScrollerClass(partnerGroups.partner)}>
+                <div className={getScrollerInnerClass(partnerGroups.partner)}>
+                  {getLogoTrack(partnerGroups.partner).map((item, index) => renderLogoPill(item, index))}
+                </div>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold tracking-[0.32em] uppercase text-[#8A7B64] mb-3 text-center">
+                Support By
+              </p>
+              <div className={getScrollerClass(partnerGroups.supportBy)}>
+                <div className={getScrollerInnerClass(partnerGroups.supportBy, true)}>
+                  {getLogoTrack(partnerGroups.supportBy).map((item, index) => renderLogoPill(item, index))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* CTA AKHIR (KONVERSI KUAT) */}

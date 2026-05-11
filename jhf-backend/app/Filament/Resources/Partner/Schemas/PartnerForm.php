@@ -20,17 +20,12 @@ class PartnerForm
                         'Hosted By' => 'Hosted By',
                         'Co-Host' => 'Co-Host',
                         'Partner' => 'Partner',
-                        'Support Lembaga Negara' => 'Support Lembaga Negara',
-                        'Support Pemerintah' => 'Support Pemerintah',
-                        'Support Universitas' => 'Support Universitas',
-                        'Support Asosiasi' => 'Support Asosiasi',
-                        'Support Organisasi Masyarakat' => 'Support Organisasi Masyarakat',
-                        'Support Media' => 'Support Media',
-                        'Sponsor' => 'Sponsor',
+                        'Support By' => 'Support By',
                     ])
                     ->required(),
                 FileUpload::make('logo')
                     ->image()
+                    ->imageEditor()
                     ->disk('public')
                     ->directory('partners')
                     ->visibility('public'),

@@ -43,10 +43,15 @@ export const ExhibitorView = () => {
           </p>
         </Reveal>
         <Reveal delay={400}>
-          <button className="px-10 py-5 rounded-sm font-bold text-black bg-[#D4AF37] transition-all duration-500 hover:bg-[#E8CA58] hover:-translate-y-2 hover:scale-105 flex items-center gap-3 mx-auto shadow-[0_0_40px_rgba(212,175,55,0.4)] hover:shadow-[0_0_60px_rgba(212,175,55,0.6)] group text-lg">
+          <a
+            href="https://jhf3registration.netlify.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-10 py-5 rounded-sm font-bold text-black bg-[#D4AF37] transition-all duration-500 hover:bg-[#E8CA58] hover:-translate-y-2 hover:scale-105 inline-flex items-center gap-3 mx-auto w-fit shadow-[0_0_40px_rgba(212,175,55,0.4)] hover:shadow-[0_0_60px_rgba(212,175,55,0.6)] group text-lg"
+          >
             Amankan Booth Saya Sekarang
             <ChevronRight className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-2" />
-          </button>
+          </a>
         </Reveal>
       </div>
     </section>
