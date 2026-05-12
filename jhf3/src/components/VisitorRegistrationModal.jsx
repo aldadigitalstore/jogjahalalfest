@@ -1,7 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 
 export const VisitorRegistrationModal = ({ open, onClose }) => {
+  const sheetConfig = {
+    appsScriptUrl: 'https://script.google.com/macros/s/AKfycbwGnJ4-9xtf_gmpXLfsETUB0-3CaAGDFIliaf2ECZgT2zd8lJfgnLSeoQ5GYKPy31GM/exec',
+  };
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    position: '',
+    company: '',
+    message: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
+
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -37,6 +53,57 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
     return null;
   }
 
+  const updateField = (key) => (event) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: event.target.value,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus({ type: '', message: '' });
+
+    try {
+      const payload = new URLSearchParams({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        position: formData.position.trim(),
+        company: formData.company.trim(),
+        message: formData.message.trim(),
+      });
+
+      await fetch(sheetConfig.appsScriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: payload,
+      });
+
+      setSubmitStatus({ type: 'success', message: 'Pendaftaran berhasil dikirim. Terima kasih!' });
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        position: '',
+        company: '',
+        message: '',
+      });
+    } catch (error) {
+      setSubmitStatus({ type: 'error', message: error.message || 'Terjadi kesalahan. Coba lagi.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:py-10">
       <div
@@ -60,7 +127,7 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
           </button>
         </div>
 
-        <form className="px-5 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6" onSubmit={(event) => event.preventDefault()}>
+        <form className="px-5 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6" onSubmit={handleSubmit}>
           <div className="grid gap-4 sm:gap-5 sm:grid-cols-2">
             <div>
               <label className="text-sm font-semibold text-gray-200">
@@ -70,6 +137,8 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
                 type="text"
                 placeholder="Nama depan"
                 className="mt-2 w-full rounded-xl border border-white/10 bg-[#12141A] px-4 py-3 text-base font-medium text-white outline-none transition placeholder:text-gray-500 focus:border-[#C9A63B] focus:ring-2 focus:ring-[#C9A63B]/20"
+                value={formData.firstName}
+                onChange={updateField('firstName')}
                 required
               />
             </div>
@@ -81,6 +150,8 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
                 type="text"
                 placeholder="Nama belakang"
                 className="mt-2 w-full rounded-xl border border-white/10 bg-[#12141A] px-4 py-3 text-base font-medium text-white outline-none transition placeholder:text-gray-500 focus:border-[#C9A63B] focus:ring-2 focus:ring-[#C9A63B]/20"
+                value={formData.lastName}
+                onChange={updateField('lastName')}
                 required
               />
             </div>
@@ -92,6 +163,8 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
                 type="email"
                 placeholder="email@example.com"
                 className="mt-2 w-full rounded-xl border border-white/10 bg-[#12141A] px-4 py-3 text-base font-medium text-white outline-none transition placeholder:text-gray-500 focus:border-[#C9A63B] focus:ring-2 focus:ring-[#C9A63B]/20"
+                value={formData.email}
+                onChange={updateField('email')}
                 required
               />
             </div>
@@ -103,6 +176,8 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
                 type="tel"
                 placeholder="+62..."
                 className="mt-2 w-full rounded-xl border border-white/10 bg-[#12141A] px-4 py-3 text-base font-medium text-white outline-none transition placeholder:text-gray-500 focus:border-[#C9A63B] focus:ring-2 focus:ring-[#C9A63B]/20"
+                value={formData.phone}
+                onChange={updateField('phone')}
                 required
               />
             </div>
@@ -114,6 +189,8 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
                 type="text"
                 placeholder="Contoh: Director"
                 className="mt-2 w-full rounded-xl border border-white/10 bg-[#12141A] px-4 py-3 text-base font-medium text-white outline-none transition placeholder:text-gray-500 focus:border-[#C9A63B] focus:ring-2 focus:ring-[#C9A63B]/20"
+                value={formData.position}
+                onChange={updateField('position')}
                 required
               />
             </div>
@@ -125,6 +202,8 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
                 type="text"
                 placeholder="Nama perusahaan"
                 className="mt-2 w-full rounded-xl border border-white/10 bg-[#12141A] px-4 py-3 text-base font-medium text-white outline-none transition placeholder:text-gray-500 focus:border-[#C9A63B] focus:ring-2 focus:ring-[#C9A63B]/20"
+                value={formData.company}
+                onChange={updateField('company')}
                 required
               />
             </div>
@@ -136,8 +215,19 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
               rows={4}
               placeholder="Tuliskan kebutuhan atau pertanyaan Anda..."
               className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-[#12141A] px-4 py-3 text-base font-medium text-white outline-none transition placeholder:text-gray-500 focus:border-[#C9A63B] focus:ring-2 focus:ring-[#C9A63B]/20"
+              value={formData.message}
+              onChange={updateField('message')}
             ></textarea>
           </div>
+
+          {submitStatus.message ? (
+            <p
+              className={`mt-4 text-sm ${submitStatus.type === 'success' ? 'text-emerald-300' : 'text-red-300'}`}
+              role="status"
+            >
+              {submitStatus.message}
+            </p>
+          ) : null}
 
           <p className="mt-4 text-xs text-gray-500">
             Dengan menekan tombol kirim, Anda menyetujui syarat dan ketentuan serta kebijakan privasi kami.
@@ -145,9 +235,10 @@ export const VisitorRegistrationModal = ({ open, onClose }) => {
 
           <button
             type="submit"
-            className="mt-6 w-full rounded-xl bg-[#C9A63B] py-4 text-sm font-semibold uppercase tracking-[0.16em] text-[#0A0A0F] transition hover:bg-[#D7B654]"
+            className="mt-6 w-full rounded-xl bg-[#C9A63B] py-4 text-sm font-semibold uppercase tracking-[0.16em] text-[#0A0A0F] transition hover:bg-[#D7B654] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={isSubmitting}
           >
-            Kirim Pendaftaran
+            {isSubmitting ? 'Mengirim...' : 'Kirim Pendaftaran'}
           </button>
         </form>
       </div>
